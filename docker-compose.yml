@@ -1,0 +1,27 @@
+version: '3.3'
+services:
+  # NGINX OSS LB
+  revproxy:
+      hostname: revproxy
+      build: plus-build
+      volumes:
+          - ./revproxy/etc/nginx:/etc/nginx
+      ports:
+        - 8080:80
+
+  # NGINX OSS upstreams
+  labapp1:
+      hostname: labapp1
+      build: oss-build
+      expose:
+        - "80"
+  labapp2:
+      hostname: labapp2
+      build: oss-build
+      expose:
+        - "80" 
+  labapp3:
+      hostname: labapp3
+      build: oss-build
+      expose:
+        - "80" 
