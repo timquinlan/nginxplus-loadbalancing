@@ -25,3 +25,13 @@ services:
       build: oss-build
       expose:
         - "80" 
+  labapp4:
+      hostname: labapp4
+      build: oss-build
+      expose:
+        - "80" 
+  labapp5:
+      hostname: labapp5
+      build: oss-build
+      expose:
+        - "80" 
