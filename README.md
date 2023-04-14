@@ -29,6 +29,21 @@ This is a demonstration of NGINX+ least_time load balancing algorithm, active he
         keepalive 32;
     }
 
+And the logging is configured with some of NGINX+'s additional metrics as such:
+
+
+    log_format  main_ext  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" "$http2" '
+                      '"$http_user_agent" "$http_x_forwarded_for" '
+                      '"$host" sn="$server_name" '
+                      'rt=$request_time '
+                      'ua="$upstream_addr" '
+                      'us="$upstream_status" '
+                      'uct="$upstream_connect_time" '
+                      'urt="$upstream_response_time" '
+                      'uht="$upstream_header_time"  '
+                      'uln="$upstream_response_length" '
+                      'cs=$upstream_cache_status $request_id';
 
 The demo creates four containers on your host, one reverse proxy listening on port 8080 and three upstreams to proxy too.  You will only need to interact with the reverse proxy server.  To get the Container ID of the reverse proxy
 
@@ -72,15 +87,7 @@ Next use ab to send 200 requests all at once to the proxy:
 
     $ ab -c200 -n200 http://localhost:8080/ 
 
-Notice now the traffic is proxied in a much less orderly pattern. Since we are sending so much more traffic, each upstream may have a different response time.  The logging is configured with some of NGINX+'s additional metrics as such:
-
-
-    'uct="$upstream_connect_time" '
-    'urt="$upstream_response_time" '
-    'uht="$upstream_header_time"  '
-    'uln="$upstream_response_length" '
-
-When we look at the access log, notice the fields for uct, urt, uht and uln.  Least_time can act on either the time to get the first header OR the time to the last byte of the proxy_pass.  The lower the Upstream Response Time OR Upstream Header Time are, the more likely that server is to get traffic proxied to it.  
+Notice now the traffic is proxied in a much less orderly pattern. Since we are sending so much more traffic, each upstream may have a different response time.  When we look at the access log, notice the fields for uct, urt, uht and uln.  Least_time can act on either the time to get the first header OR the time to the last byte of the proxy_pass.  The lower the Upstream Response Time OR Upstream Header Time are, the more likely that server is to get traffic proxied to it.  
 
 
     192.168.32.1 - - [14/Apr/2023:15:41:42 +0000] "GET / HTTP/1.0" 200 7215 "-" "" "ApacheBench/2.3" "-" "localhost" sn="_" rt=0.019 ua="192.168.32.3:80" us="200" uct="0.014" urt="0.019" uht="0.019"  uln="7215" cs=- 383801db607a6cc95e99fb7c28129f4a
