@@ -17,7 +17,7 @@ Clone this repo and use docker-compose to bring up the environment:
     cd nginxplus-loadbalancing
     docker-compose up -dA
 
-This is a demonstration of NGINX+ least_time load balancing algorithm, active heatlh checks, dynamic upstreams and the plus API.  All of the configuration for this demo takes place in the **upstream** block.
+This is a demonstration of NGINX+ least_time load balancing algorithm, active heatlh checks, dynamic upstreams and the plus API. Most of the configuration for this demo takes place in the **upstream** block.
 
 
     upstream oss_upstreams {
