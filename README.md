@@ -226,8 +226,9 @@ NGINX+ is configured to actively check the health of each upstream server by con
 Notice the terminal were you are tailing the error.log, once it's last health check request fails you will see: 
    
 
-    4/14 16:10:17 [error] 7#7: upstream timed out (110: Connection timed out) while reading response header from upstream, health check "" of peer 192.168.32.4:80 in upstream "oss_upstreams"
-2023/04/14 16:10:17 [warn] 7#7: peer is unhealthy while reading response header from upstream, health check "" of peer 192.168.32.4:80 in upstream "oss_upstreams"
+    2023/04/14 16:10:17 [error] 7#7: upstream timed out (110: Connection timed out) while reading response header from upstream, health check "" of peer 192.168.32.4:80 in upstream "oss_upstreams"
+    2023/04/14 16:10:17 [warn] 7#7: peer is unhealthy while reading response header from upstream, health check "" of peer 192.168.32.4:80 in upstream "oss_upstreams"
+
 
 We can use the API to verify that labapp1 is marked unhealthy:
 
