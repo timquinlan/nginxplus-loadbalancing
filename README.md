@@ -17,7 +17,20 @@ Clone this repo and use docker-compose to bring up the environment:
     cd nginxplus-loadbalancing
     docker-compose up -dA
 
-This is a demonstration of NGINX+ least_time load balancing algorithm, active heatlh check, dynamic upstream management and plus API.  It creates four containers on your host, one reverse proxy listening on port 8080 and three upstreams to proxy too.  You will only need to interact with the reverse proxy server.  To get the Container ID of the reverse proxy
+This is a demonstration of NGINX+ least_time load balancing algorithm, active heatlh check, dynamic upstream management and plus API.  All of the configuration for this demo takes place in the **upstream** block.
+
+
+    upstream oss_upstreams {
+        zone oss_upstreams 64k;
+        least_time header; 
+        server labapp1:80 max_fails=1 fail_timeout=1s slow_start=30s weight=5;
+        server labapp2:80 max_fails=1 fail_timeout=1s slow_start=30s weight=5;
+        server labapp3:80 max_fails=1 fail_timeout=1s slow_start=30s weight=5;
+        keepalive 32;
+    }
+
+
+The demo creates four containers on your host, one reverse proxy listening on port 8080 and three upstreams to proxy too.  You will only need to interact with the reverse proxy server.  To get the Container ID of the reverse proxy
 
     $ docker ps | grep nginxplus-loadbalancing-revproxy
     eb1002e2defa   nginxplus-loadbalancing-revproxy   "nginx -g 'daemon of…"   9 minutes ago   Up 9 minutes   0.0.0.0:8080->80/tcp   nginxplus-loadbalancing-revproxy-1
@@ -81,6 +94,8 @@ When we look at the access log, notice the fields for uct, urt, uht and uln.  Le
 
 
 To get a more indepth look at each upstream server's stats, use the NGINX+ API: 
+
+
     $ curl http://localhost:8080/api/8/http/upstreams | jq
 
     {
