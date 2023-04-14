@@ -52,7 +52,7 @@ In this example, since there is no additional load on the upstream servers they 
     192.168.32.1 - - [14/Apr/2023:15:37:00 +0000] "GET / HTTP/1.1" 200 7228 "-" "" "curl/7.86.0" "-" "localhost" sn="_" rt=0.004 ua="192.168.32.4:80" us="200" uct="0.000" urt="0.004" uht="0.004"  uln="7215" cs=- de4bbb1dfd68a293d6550945e717a871
 
 
-Next us ab to send 200 requests all at once to the proxy:
+Next use ab to send 200 requests all at once to the proxy:
 
 
     $ ab -c200 -n200 http://localhost:8080/ 
@@ -78,6 +78,173 @@ When we look at the access log, notice the fields for uct, urt, uht and uln.  Le
     192.168.32.1 - - [14/Apr/2023:15:41:42 +0000] "GET / HTTP/1.0" 200 7215 "-" "" "ApacheBench/2.3" "-" "localhost" sn="_" rt=0.003 ua="192.168.32.4:80" us="200" uct="0.001" urt="0.003" uht="0.003"  uln="7215" cs=- fda9a716331b8d5bd4da85bd23da2c12
     192.168.32.1 - - [14/Apr/2023:15:41:42 +0000] "GET / HTTP/1.0" 200 7215 "-" "" "ApacheBench/2.3" "-" "localhost" sn="_" rt=0.013 ua="192.168.32.3:80" us="200" uct="0.001" urt="0.013" uht="0.002"  uln="7215" cs=- 52697239766324fb55987fdfe5b18486
     192.168.32.1 - - [14/Apr/2023:15:41:42 +0000] "GET / HTTP/1.0" 200 7215 "-" "" "ApacheBench/2.3" "-" "localhost" sn="_" rt=0.019 ua="192.168.32.4:80" us="200" uct="0.001" urt="0.019" uht="0.008"  uln="7215" cs=- 53764a38dacdf6abc8465897d595e171
+
+
+To get a more indepth look at each upstream server's stats, use the NGINX+ API: 
+    $ curl http://localhost:8080/api/8/http/upstreams | jq
+
+    {
+      "oss_upstreams": {
+        "peers": [
+          {
+            "id": 0,
+            "server": "192.168.32.4:80",
+            "name": "labapp1:80",
+            "backup": false,
+            "weight": 5,
+            "state": "up",
+            "active": 0,
+            "requests": 139,
+            "header_time": 9,
+            "response_time": 9,
+            "responses": {
+              "1xx": 0,
+              "2xx": 139,
+              "3xx": 0,
+              "4xx": 0,
+              "5xx": 0,
+              "codes": {
+                "200": 139
+              },
+              "total": 139
+            },
+            "sent": 13892,
+            "received": 1028878,
+            "fails": 0,
+            "unavail": 0,
+            "health_checks": {
+              "checks": 546,
+              "fails": 1,
+              "unhealthy": 1,
+              "last_passed": true
+            },
+            "downtime": 5045,
+            "selected": "2023-04-14T15:41:42Z"
+          },
+          {
+            "id": 1,
+            "server": "192.168.32.3:80",
+            "name": "labapp2:80",
+            "backup": false,
+            "weight": 5,
+            "state": "up",
+            "active": 0,
+            "requests": 135,
+            "header_time": 9,
+            "response_time": 9,
+            "responses": {
+              "1xx": 0,
+              "2xx": 135,
+              "3xx": 0,
+              "4xx": 0,
+              "5xx": 0,
+              "codes": {
+                "200": 135
+              },
+              "total": 135
+            },
+            "sent": 13492,
+            "received": 999270,
+            "fails": 0,
+            "unavail": 0,
+            "health_checks": {
+              "checks": 546,
+              "fails": 0,
+              "unhealthy": 0,
+              "last_passed": true
+            },
+            "downtime": 0,
+            "selected": "2023-04-14T15:41:42Z"
+          },
+          {
+            "id": 2,
+            "server": "192.168.32.2:80",
+            "name": "labapp3:80",
+            "backup": false,
+            "weight": 5,
+            "state": "up",
+            "active": 0,
+            "requests": 132,
+            "header_time": 10,
+            "response_time": 11,
+            "responses": {
+              "1xx": 0,
+              "2xx": 132,
+              "3xx": 0,
+              "4xx": 0,
+              "5xx": 0,
+              "codes": {
+                "200": 132
+              },
+              "total": 132
+            },
+            "sent": 13192,
+            "received": 977064,
+            "fails": 0,
+            "unavail": 0,
+            "health_checks": {
+              "checks": 546,
+              "fails": 0,
+              "unhealthy": 0,
+              "last_passed": true
+            },
+            "downtime": 0,
+            "selected": "2023-04-14T15:41:42Z"
+          }
+        ],
+        "keepalive": 0,
+        "zombies": 0,
+        "zone": "oss_upstreams"
+      }
+    }
+
+
+NGINX+ is configured to actively check the health of each upstream server by constantly making http calls to each.  If one fails it is marked unhealthy and proxies are suspended to that upstream.  Force a failure of the first upstream server by pausing it's container:
+
+
+    $ docker ps | grep nginxplus-loadbalancing-labapp1
+    d528a775f55f   nginxplus-loadbalancing-labapp1    "/docker-entrypoint.…"   50 minutes ago   Up 50 minutes   80/tcp                 nginxplus-loadbalancing-labapp1-1
+    $ docker pause d528a775f55f
+
+Notice the terminal were you are tailing the error.log, once it's last health check request fails you will see: 
+   
+
+    4/14 16:10:17 [error] 7#7: upstream timed out (110: Connection timed out) while reading response header from upstream, health check "" of peer 192.168.32.4:80 in upstream "oss_upstreams"
+2023/04/14 16:10:17 [warn] 7#7: peer is unhealthy while reading response header from upstream, health check "" of peer 192.168.32.4:80 in upstream "oss_upstreams"
+
+We can use the API to verify that labapp1 is marked unhealthy:
+    $ curl http://localhost:8080/api/8/http/upstreams | jq | egrep "name|state"
+        "name": "labapp1:80",
+        "state": "unhealthy",
+        "name": "labapp2:80",
+        "state": "up",
+        "name": "labapp3:80",
+        "state": "up",
+
+
+If you now send traffic to the reverse proxy, you will notice that traffic is only proxied to labapp2 and labapp3.  
+
+
+If you unpause labapp1's container you will see a "peer is health" message in the error log almost immediately:
+
+
+    2023/04/14 16:15:24 [notice] 7#7: peer is healthy while checking status code, health check "" of peer 192.168.32.4:80 in upstream "oss_upstreams"
+
+
+You can check the API to verify that labapp1 is marked healthy:
+
+
+    $ curl http://localhost:8080/api/8/http/upstreams | jq | egrep "name|state"
+        "name": "labapp1:80",
+        "state": "up",
+        "name": "labapp2:80",
+        "state": "up",
+        "name": "labapp3:80",
+        "state": "up",
+
+
+If you now send traffic to the reverse proxy, you will notice that traffic is only proxied to all three labapp servers.
+
 
 
 
