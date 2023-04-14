@@ -274,4 +274,10 @@ You can check the API to verify that labapp1 is marked healthy:
 
 If you now send traffic to the reverse proxy, you will notice that traffic is only proxied to all three labapp servers.
 
+**Weight and Slow Start**
+In our reverse proxy configuration each upstream server is defined as such:
 
+
+    server labapp1:80 max_fails=1 fail_timeout=1s slow_start=30s weight=5;
+
+Since they are all evenly weighted at 5 this will have no affect on normal operations.  However when a failure and recovery of an upstream occurs, weight will come into play.  We defined
