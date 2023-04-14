@@ -73,6 +73,8 @@ Next use ab to send 200 requests all at once to the proxy:
     $ ab -c200 -n200 http://localhost:8080/ 
 
 Notice now the traffic is proxied in a much less orderly pattern. Since we are sending so much more traffic, each upstream may have a different response time.  The logging is configured with some of NGINX+'s additional metrics as such:
+
+
     'uct="$upstream_connect_time" '
     'urt="$upstream_response_time" '
     'uht="$upstream_header_time"  '
