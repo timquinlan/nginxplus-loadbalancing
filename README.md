@@ -29,7 +29,7 @@ This is a demonstration of NGINX+ least_time load balancing algorithm, active he
         keepalive 32;
     }
 
-And the logging is configured with some of NGINX+'s additional metrics as such:
+And the logging is configured with some of NGINX+'s additional metrics such as upstream_connect_time, upstream_response_time and upstream_header_time:
 
 
     log_format  main_ext  '$remote_addr - $remote_user [$time_local] "$request" '
