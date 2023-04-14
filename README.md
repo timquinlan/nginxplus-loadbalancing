@@ -228,6 +228,8 @@ Notice the terminal were you are tailing the error.log, once it's last health ch
 2023/04/14 16:10:17 [warn] 7#7: peer is unhealthy while reading response header from upstream, health check "" of peer 192.168.32.4:80 in upstream "oss_upstreams"
 
 We can use the API to verify that labapp1 is marked unhealthy:
+
+
     $ curl http://localhost:8080/api/8/http/upstreams | jq | egrep "name|state"
         "name": "labapp1:80",
         "state": "unhealthy",
@@ -259,7 +261,5 @@ You can check the API to verify that labapp1 is marked healthy:
 
 
 If you now send traffic to the reverse proxy, you will notice that traffic is only proxied to all three labapp servers.
-
-
 
 
