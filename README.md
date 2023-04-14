@@ -247,7 +247,7 @@ We can use the API to verify that labapp1 is marked unhealthy:
 If you now send traffic to the reverse proxy, you will notice that traffic is only proxied to labapp2 and labapp3.  
 
 
-If you unpause labapp1's container you will see a "peer is health" message in the error log almost immediately:
+If you unpause labapp1's container you will see a "peer is healthy" message in the error log almost immediately:
 
 
     2023/04/14 16:15:24 [notice] 7#7: peer is healthy while checking status code, health check "" of peer 192.168.32.4:80 in upstream "oss_upstreams"
