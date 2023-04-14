@@ -39,7 +39,9 @@ In another terminal, make a few http requests with curl and watch the access log
 
     $ curl http://localhost:8080/
 
-On the access.log terminal notice that the traffic is proxied to the upstream servers ("ua=" in this example) in a more-or-less round robin pattern.  This is because we are not sending enough traffic and each upstream is .....
+On the access.log terminal notice that the traffic is proxied to the upstream servers ("ua=" in this example) in a more-or-less round robin pattern.  This is because the [least_time](http://nginx.org/en/docs/http/ngx_http_upstream_module.html#least_time) load balancing  algorithm specifies: 
+>A group should use a load balancing method where a request is passed to the server with the least average response time and least number of active connections, taking into account weights of servers. If there are several such servers, they are tried in turn using a weighted round-robin balancing method.
+In this example, since there is no additional load on the upstream servers they are all weighted the same:
 
 
     192.168.32.1 - - [14/Apr/2023:15:36:46 +0000] "GET / HTTP/1.1" 200 7234 "-" "" "curl/7.86.0" "-" "localhost" sn="_" rt=0.003 ua="192.168.32.3:80" us="200" uct="0.001" urt="0.003" uht="0.002"  uln="7215" cs=- 9f409cda740d258be7434dc3c51e27ea
@@ -55,7 +57,13 @@ Next us ab to send 200 requests all at once to the proxy:
 
     $ ab -c200 -n200 http://localhost:8080/ 
 
-Notice now the traffic is proxied in a much less orderly pattern.  
+Notice now the traffic is proxied in a much less orderly pattern. Since we are sending so much more traffic, each upstream may have a different response time.  The logging is configured with some of NGINX+'s additional metrics as such:
+    'uct="$upstream_connect_time" '
+    'urt="$upstream_response_time" '
+    'uht="$upstream_header_time"  '
+    'uln="$upstream_response_length" '
+
+When we look at the access log, notice the fields for uct, urt, uht and uln.  Least_time can act on either the time to get the first header OR the time to the last byte of the proxy_pass.  The lower the Upstream Response Time OR Upstream Header Time are, the more likely that server is to get traffic proxied to it.  
 
 
     192.168.32.1 - - [14/Apr/2023:15:41:42 +0000] "GET / HTTP/1.0" 200 7215 "-" "" "ApacheBench/2.3" "-" "localhost" sn="_" rt=0.019 ua="192.168.32.3:80" us="200" uct="0.014" urt="0.019" uht="0.019"  uln="7215" cs=- 383801db607a6cc95e99fb7c28129f4a
@@ -71,7 +79,5 @@ Notice now the traffic is proxied in a much less orderly pattern.
     192.168.32.1 - - [14/Apr/2023:15:41:42 +0000] "GET / HTTP/1.0" 200 7215 "-" "" "ApacheBench/2.3" "-" "localhost" sn="_" rt=0.013 ua="192.168.32.3:80" us="200" uct="0.001" urt="0.013" uht="0.002"  uln="7215" cs=- 52697239766324fb55987fdfe5b18486
     192.168.32.1 - - [14/Apr/2023:15:41:42 +0000] "GET / HTTP/1.0" 200 7215 "-" "" "ApacheBench/2.3" "-" "localhost" sn="_" rt=0.019 ua="192.168.32.4:80" us="200" uct="0.001" urt="0.019" uht="0.008"  uln="7215" cs=- 53764a38dacdf6abc8465897d595e171
 
-
-http://nginx.org/en/docs/http/ngx_http_upstream_module.html#least_time
 
 
