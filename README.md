@@ -284,6 +284,6 @@ In our reverse proxy configuration each upstream server is defined as such:
 Since they are all evenly weighted at 5 this will have no affect on normal operations.  However when a failure and recovery of an upstream occurs, weight will come into play. Slow_start is defined as: 
 >the time during which the server will recover its weight from zero to a nominal value, when unhealthy server becomes healthy, or when the server becomes available after a period of time it was considered unavailable.
 
-In this example, once and upstream server recovers and is marked as healhty, it's weight will progressively go from 0 to 5 over a period of 30 seconds.  Since least_time considers an upstream  server's weight this will prevent a newly recovered upstream from getting flooded with requests initially.
+In this example, once an upstream server recovers and is marked as healhty, it's weight will progressively go from 0 to 5 over a period of 30 seconds.  Since least_time considers an upstream  server's weight this will prevent a newly recovered upstream from getting flooded with requests initially.
 
 
