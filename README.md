@@ -54,6 +54,8 @@ In another terminal, make a few http requests with curl and watch the access log
 
 On the access.log terminal notice that the traffic is proxied to the upstream servers ("ua=" in this example) in a more-or-less round robin pattern.  This is because the [least_time](http://nginx.org/en/docs/http/ngx_http_upstream_module.html#least_time) load balancing  algorithm specifies: 
 >A group should use a load balancing method where a request is passed to the server with the least average response time and least number of active connections, taking into account weights of servers. If there are several such servers, they are tried in turn using a weighted round-robin balancing method.
+
+
 In this example, since there is no additional load on the upstream servers they are all weighted the same:
 
 
