@@ -15,9 +15,9 @@ Clone this repo and use docker-compose to bring up the environment:
     git clone https://github.com/timquinlan/nginxplus-loadbalancing
     cp nginx-repo.crt nginx-repo.key nginxplus-loadbalancing/plus-build
     cd nginxplus-loadbalancing
-    docker-compose up -dA
+    docker-compose up -d
 
-This is a demonstration of NGINX+ least_time load balancing algorithm, active heatlh checks, dynamic upstreams and the plus API. Most of the configuration for this demo takes place in the **upstream** block.
+This is a demonstration of NGINX+ least_time load balancing algorithm, active heatlh checks and the plus API. Most of the configuration for this demo takes place in the **upstream** block.
 
 
     upstream oss_upstreams {
@@ -87,7 +87,7 @@ Next use ab to send 200 requests all at once to the proxy:
 
     $ ab -c200 -n200 http://localhost:8080/ 
 
-Notice now the traffic is proxied in a much less orderly pattern. Since we are sending so much more traffic, each upstream may have a different response time.  When we look at the access log, notice the fields for uct, urt, uht and uln.  Least_time can act on either the time to get the first header OR the time to the last byte of the proxy_pass.  The lower the Upstream Response Time OR Upstream Header Time are, the more likely that server is to get traffic proxied to it.  As outlined above, this demo is configured to use header response time.
+Notice now the traffic is proxied in a much less orderly pattern. Since we are sending so much more traffic, each upstream may have a different response time.  When we look at the access log, notice the fields for uct, urt, uht and uln.  Least_time can act on either the time to get the first header OR the time to the last byte of the proxied request.  The lower the Upstream Response Time OR Upstream Header Time are, the more likely that server is to get traffic proxied to it.  As outlined above, this demo is configured to use header response time.
 
 
     192.168.32.1 - - [14/Apr/2023:15:41:42 +0000] "GET / HTTP/1.0" 200 7215 "-" "" "ApacheBench/2.3" "-" "localhost" sn="_" rt=0.019 ua="192.168.32.3:80" us="200" uct="0.014" urt="0.019" uht="0.019"  uln="7215" cs=- 383801db607a6cc95e99fb7c28129f4a
